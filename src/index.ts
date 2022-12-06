@@ -1,64 +1,14 @@
-import continentsJson from './data/continents.json';
-import continentJson from './data/continent.json';
-import isoAlpha3Json from './data/iso_alpha_3.json';
-import capitalJson from './data/capital.json';
-import currencyJson from './data/currency.json';
-import currencyInfoJson from './data/currency_info.json';
-import namesJson from './data/names.json';
-import phoneJson from './data/phone.json';
-import regionsJson from './data/regions.json';
-import provincesJson from './data/provinces.json';
+
 import memoize from "fast-memoize";
+import {countries} from "./data/countries";
+countries
 
-import {CountriesMap, Country, SearchableCountryRecordMember, ISO2} from "./types";
+export interface Country {
 
-export const RAW = {
-    continent: continentJson,
-    ISO2_contient: continentsJson,
-    ISO2_ISO3: isoAlpha3Json,
-    ISO2_capital: capitalJson,
-    ISO2_currency: currencyJson,
-    currency_info: currencyInfoJson,
-    ISO2_names: namesJson,
-    ISO2_phoneCountryCode: phoneJson,
-    ISO2_region: regionsJson,
-    ISO2_province: provincesJson,
-} as const;
-
-function _all(): CountriesMap {
-    let a: CountriesMap = {};
-
-    Object.keys(isoAlpha3Json).forEach((iso2: ISO2) => {
-        a[iso2] = {
-            capital: capitalJson[iso2],
-            code: {
-                iso2,
-                iso3: isoAlpha3Json[iso2]
-            },
-            continent: continentsJson[continentJson[iso2]],
-            currency: {
-                code: currencyJson[iso2],
-                symbol: currencyInfoJson[currencyJson[iso2]].symbol,
-                decimal: currencyInfoJson[currencyJson[iso2]].decimal
-            },
-            dialing_code: phoneJson[iso2],
-            name: namesJson[iso2],
-            provinces: provincesJson[iso2],
-            region: regionsJson[iso2]
-        };
-    });
-    return a;
 }
 
-/**
- * Map of all countries
- * @var {CountriesMap}
- */
-export const all = memoize(_all);
 
-function _allArray(): Array<Country> {
-    return Object.values(all())
-}
+
 
 /**
  * List of all countries

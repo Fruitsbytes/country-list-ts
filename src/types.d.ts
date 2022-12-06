@@ -7,7 +7,6 @@ import currencyInfoJson from './data/currency_info.json';
 import namesJson from './data/names.json';
 import phoneJson from './data/phone.json';
 import regionsJson from './data/regions.json';
-import provincesJson from './data/provinces.json';
 
 export type ISO2 = keyof typeof iso3Json;
 export type ISO3 = typeof iso3Json[ISO2];
@@ -23,14 +22,6 @@ export interface RAW  {
     ISO2_names: typeof namesJson;
     ISO2_phoneCountryCode: typeof phoneJson;
     ISO2_region: typeof regionsJson;
-    ISO2_province: typeof provincesJson;
-}
-
-export interface Province {
-    name: string;
-    alias: string[] | null;
-    region?: string | undefined;
-    short?: string | undefined;
 }
 
 export interface CountryCode {
@@ -52,8 +43,6 @@ export interface Country {
     dialing_code: string;
     code: CountryCode;
     currency: Currency;
-    provinces: Province[];
-
 }
 
 export type CountriesMap = Record<any, Country>;

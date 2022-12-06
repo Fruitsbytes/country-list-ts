@@ -4,13 +4,8 @@
 
 # Country List TS
 
-This module is an ES port
-of [i-rocky/country-list-js](https://github.com/i-rocky/country-list-js) build
-with typescript.
 
-It contains country information including 2 and 3 character ISO codes, country and
-capital names, currency information, telephone calling codes, and provinces (
-first-tier political subdivisions).
+
 
 ## Installation
 ```shell
@@ -18,9 +13,9 @@ npm i
 ```
 
 ### Compatibility table
-| Version |  JS target   |  JS lib   |
-|:-------:|:------------:|:---------:|
-|  1.0.0  |     ES6      |  ES2017   |
+| Version | JS target |  JS lib   |
+|:-------:|:---------:|:---------:|
+|  1.0.0  |    ES5    |  ES2017   |
 
 ## Usage
 
@@ -57,6 +52,10 @@ var continents: string[] = continents();
 ```
 
 ### Search
+
+
+### Dependencies
+Data Source [mledoze/countries](https://github.com/mledoze/countries).
 
 ## Licence
 
