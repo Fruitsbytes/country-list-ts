@@ -4,3 +4,4 @@ dist
 .eslintrc.js
 package-lock.json
 coverage
+/.idea

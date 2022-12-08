@@ -28,11 +28,17 @@
     "iso3",
     "phone",
     "capital",
-    "continent",
+    "subregion",
+    "languages",
     "region",
+    "currencies",
     "geographic",
-    "ESM",
-    "Typescript"
+    "flag",
+    "geo-jon",
+    "top-json",
+    "Typescript",
+    "list",
+    "mapped"
   ],
   "author": "FruitsBytes <librarian@fruitsbytes.com> (https://github.com/Fruitsbytes)",
   "license": "MIT",
@@ -58,7 +64,7 @@
     "shelljs": "^0.8.5",
     "ts-jest": "^29.0.3",
     "typescript": "~4.7",
-    "world-countries": "^4.0.0"
+    "world-countries": "github:mledoze/countries"
   },
   "jest": {
     "preset": "ts-jest"
