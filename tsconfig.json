@@ -1,9 +1,13 @@
 {
   "compilerOptions": {
     "target": "ES5",
-    "lib": ["ES2017"],
+    "lib": [
+      "ES2017",
+      "dom"
+    ],
     "types": ["jest"],
     "esModuleInterop": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "files": ["globals.d.ts"]
   }
 }

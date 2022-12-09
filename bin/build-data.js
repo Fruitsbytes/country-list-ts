@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 import chalk from "chalk";
 import {existsSync, mkdirSync, statSync, truncateSync, writeFileSync, appendFileSync, readFileSync} from "fs";
-import {error, exit} from "shelljs";
+import shelljs from "shelljs";
 import {parse} from "path";
 import cliSpinners from "cli-spinners";
 import ora from 'ora';
@@ -9,28 +9,31 @@ import camelCase from "lodash.camelcase";
 import snakeCase from "lodash.snakecase";
 import startCase from "lodash.startcase";
 
+const {exec, exit, cp, rm, ls} = shelljs;
+
 function pascalCase(str) {
     return startCase(camelCase(str)).replace(/ /g, '');
 }
 
-console.log(chalk.blackBright('                                   &&&&&&&&##    \n' +
+console.log(chalk.blackBright('' +
+    '                                   &&&&&&&&##    \n' +
     '           &&#BBGGGBB#&&       &B55Y555555YJ5     \n' +
     '       &#P5YYYYYYYYYYYYY5G#&  PJ5GBGGPP55YJP      \n' +
-    '     #PYJJJJ?????JJJYY555YYYP55#BY?7777??JG       \n' +
-    '   #5JJ?7777777???????JY5YYYYY5Y77??????J??5B&    \n' +
-    '  GJ?77:   ..  ~7??????77.  .YJ??777777?YYJ?77?Y# \n' +
-    ' GJ??:   :7!~.   ~?!!!!      J?777777777!!!7JP#   \n' +
-    '#J???:   ^J.     ~?. ..      YYJ?77?77?JYP#&      \n' +
-    '5????:   ^J^.    ~??????7    Y555YP               \n' +
-    'Y????:   .^!J.   ~??????7    Y5YYYP               \n' +
-    '5????:     ^J.   ~??????7    J5PGBB&              \n' +
-    '&????:   .^!J.   ~??????7    P#&###BB#&           \n' +
-    ' B7??!^.  ...  :^7??????7   7#J?Y5!5G775          \n' +
-    '  B?7??!~~~~~~~7?????????!77BP.:~P.YP ::&         \n' +
-    '   &5?7?????????????????J5555B5YPGJPGJJG          \n' +
-    '     &GJ?77??????????JYYYYYPB  &##BBB&            \n' +
+    '     #PYJJJJ??????JJJYY555YYYP55#BY?7777??JG       \n' +
+    '   #5JJ?7777777????????JY5YYYYY5Y77??????J??5B&    \n' +
+    '  GJ?77:   ..  ~7???????77.  .YJ??777777?YYJ?77?Y# \n' +
+    ' GJ??:   :7!~.   ~??!!!!      J?777777777!!!7JP#   \n' +
+    '#J???:   ^J.     ~??. ..      YYJ?77?77?JYP#&      \n' +
+    '5????:   ^J^.    ~???????7    Y555YP               \n' +
+    'Y????:   .^!J.   ~???????7    Y5YYYP               \n' +
+    '5????:     ^J.   ~???????7    J5PGBB&              \n' +
+    '&????:   .^!J.   ~???????7    P#&###BB#&           \n' +
+    ' B7??!^.  ...  :^7???????7   7#J?Y5!5G775          \n' +
+    '  B?7??!~~~~~~~7??????????!77BP.:~P.YP ::&         \n' +
+    '   &5?7??????????????????J5555B5YPGJPGJJG          \n' +
+    '     &GJ?77???????????JYYYYYPB  &##BBB&            \n' +
     '        &BPYJJ??JJJYY55PG#&                       \n' +
-    '             &&&###&&&                            \n'));
+    '          &&&&&###&&&                            \n'));
 
 const OK = "✅ ";
 const ERROR = "❌ ";
@@ -40,7 +43,7 @@ function printError(message) {
 }
 
 function printSuccess(message) {
-    console.log(OK + chalk.greenBright(` ${message}`));
+    console.log(OK + chalk.green(` ${message}`));
 }
 
 function printStatic(message) {
@@ -53,35 +56,37 @@ function printLog(message) {
 
 console.log(chalk.bgCyan.black.bold(' <FruitsBytes> '));
 
+console.log("Country list - Building data and assets");
+
 const countries_file = './src/data/countries.ts';
 const path_to_dependency = "./node_modules/world-countries";
 
 if (!existsSync(path_to_dependency)) {
-    printError("Missing dependency: " + chalk.bold("world-countries") + ".");
-    exit(1)
+
+    const spinner = ora({
+        color: "blue",
+        spinner: cliSpinners.dots,
+        text: "Installing dependency " + chalk.bold("world-countries") + "...."
+    });
+
+    spinner.start();
+
+    if (exec('npm i -D mledoze/countries').code !== 0) {
+        printError("Could not install dependency: " + chalk.bold("world-countries") + ".");
+        spinner.stop();
+        exit(1);
+    }
+    spinner.stop();
 }
-
-// const spinner = ora({
-//     color: "blue",
-//     spinner: cliSpinners.dots
-// });
-//
-// spinner.start();
-//
-// await setTimeout(() => {
-//
-//     spinner.stop();
-// }, 5000);
-
 
 function prepareFile(path) {
     const parts = parse(path);
 
     try {
         statSync(path);
-        printLog(`Found ${parts.base}...`);
+        printLog(`Found ${path}...`);
         truncateSync(path, 0);
-        printLog(`Cleared ${parts.base}...`)
+        printLog(`Cleared ${path}...`)
     } catch (e) {
         const dir = parts.dir;
         if (!existsSync(dir)) {
@@ -90,7 +95,7 @@ function prepareFile(path) {
     }
 
     try {
-        writeFileSync(countries_file, `// ${parts.name} file`);
+        writeFileSync(path, `// ${parts.name} file`);
     } catch (e) {
         printError(`Could not create ${parts.name} file.`);
         exit(1);
@@ -98,29 +103,25 @@ function prepareFile(path) {
 
 }
 
-prepareFile(countries_file);
-
-let countriesString = "[]";
 
 try {
+    prepareFile(countries_file);
+
+
     const interfaceCountry = `
-    
+ export type Mapped< K extends string, V> = Partial<{ [k in K] : V }>   
  export interface Currency{ name :  CurrencyName;  symbol :  CurrencySymbol; }
  export interface  Name {
   common: string;
   official: string;
-  native: Record<Lang , {
-     official : string;
-     common : string;
-   }
-   >
+  native: Mapped<Lang , {official : string;common : string;}>;
  }
  export type LatLong = [number, number];
  export interface InternationalDirectDialing{
    root :  string;
    suffixes : string[];
- };
-
+ }
+ 
  export interface Country{
   name: Name;
   tld : string[];
@@ -131,16 +132,16 @@ try {
   independent : boolean;
   status :  CountryStatus;
   unMember : boolean;
-  currencies : Record<CurrencyCode , Currency>;
+  currencies : Mapped<CurrencyCode , Currency> | [];
   idd : InternationalDirectDialing;
   capital : Capital[];
   altSpellings : string[];
   region :  Region;
   subregion :  SubRegion;
-  languages : Record<Lang,LanguageName>,
-  translations : Record<Lang, { official :  string;  common : string; }>,
+  languages : Mapped<Lang,LanguageName>;
+  translations : Mapped<Lang, { official :  string;  common : string; }>;
   latlng : LatLong;
-  demonyms : Record<Lang, {
+  demonyms : Mapped<Lang, {
     f : string;
     m : string;
   }>;
@@ -151,7 +152,11 @@ try {
   flag :  string;
 }`;
 
-    countriesString = readFileSync(path_to_dependency + "/dist/countries-unescaped.json", 'utf8');
+    const dataSourcePath = "./src/data/countries-unescaped.json";
+
+    cp(path_to_dependency + "/dist/countries-unescaped.json", dataSourcePath);
+
+    let countriesString = readFileSync(dataSourcePath, 'utf8');
     const countriesObject = JSON.parse(countriesString);
 
     let lists = {
@@ -221,6 +226,9 @@ try {
         callingCodes: []
     }
 
+    let listArraysAnInterface = "\n";
+
+
     for (const c of countriesObject) {
         lists.commonName.push(c.name.common);
         lists.officialName.push(c.name.official);
@@ -243,6 +251,9 @@ try {
             lists.lang.push(i);
             lists.languageName.push(v);
         }
+        for (const [i] of Object.entries(c.translations)) {
+            lists.lang.push(i);
+        }
 
         maps.name[c.cca2] = c.name;
         maps.tld[c.cca2] = c.tld;
@@ -262,13 +273,14 @@ try {
         maps.landlocked[c.cca2] = c.landlocked;
         maps.borders[c.cca2] = c.borders;
         maps.area[c.cca2] = c.area;
+        maps.flag[c.cca2] = c.flag;
         maps.demonyms[c.cca2] = c.demonyms;
         maps.callingCodes[c.cca2] = c.callingCodes;
 
         fatList.name.push({name: c.name, cca2: c.cca2});
         fatList.tld.push({tld: c.tld, cca2: c.cca2});
         fatList.ccn3.push({ccn3: c.ccn3, cca2: c.cca2});
-        fatList.cca3.push({ cca3:c.cca3, cca2: c.cca2});
+        fatList.cca3.push({cca3: c.cca3, cca2: c.cca2});
         fatList.cioc.push({cioc: c.cioc, cca2: c.cca2});
         fatList.independent.push({independent: c.independent, cca2: c.cca2});
         fatList.idd.push({idd: c.idd, cca2: c.cca2});
@@ -283,76 +295,97 @@ try {
         fatList.landlocked.push({landlocked: c.landlocked, cca2: c.cca2});
         fatList.borders.push({borders: c.borders, cca2: c.cca2});
         fatList.area.push({area: c.area, cca2: c.cca2});
+        fatList.flag.push({flag: c.flag, cca2: c.cca2});
         fatList.demonyms.push({demonyms: c.demonyms, cca2: c.cca2});
         fatList.callingCodes.push({callingCodes: c.callingCodes, cca2: c.cca2});
     }
+
+    listArraysAnInterface += `
+ export const NamesMap= ${JSON.stringify(maps.name)};
+ export const NamesFatList= ${JSON.stringify(fatList.name)};
+ export const TLDMap= ${JSON.stringify(maps.tld)};
+ export const TLDFatList= ${JSON.stringify(fatList.tld)};
+ export const CCN3Map= ${JSON.stringify(maps.ccn3)};
+ export const CCN3FatList= ${JSON.stringify(fatList.ccn3)};
+ export const CCA3Map= ${JSON.stringify(maps.cca3)};
+ export const CCA3FatList= ${JSON.stringify(fatList.cca3)};
+ export const CIOCMap= ${JSON.stringify(maps.cioc)};
+ export const CIOCFatList= ${JSON.stringify(fatList.cioc)};
+ export const IndependentMap= ${JSON.stringify(maps.independent)};
+ export const IndependentFatList= ${JSON.stringify(fatList.independent)};
+ export const IDDMap= ${JSON.stringify(maps.idd)};
+ export const IDDFatList= ${JSON.stringify(fatList.idd)};
+ export const CountryStatusMap= ${JSON.stringify(maps.countryStatus)};
+ export const CountryStatusFatList= ${JSON.stringify(fatList.countryStatus)};
+ export const CurrenciesMap= ${JSON.stringify(maps.currencies)};
+ export const CurrenciesFatList= ${JSON.stringify(fatList.currencies)};
+ export const RegionMap= ${JSON.stringify(maps.region)};
+ export const RegionFatList= ${JSON.stringify(fatList.region)};
+ export const SubRegionMap= ${JSON.stringify(maps.subRegion)};
+ export const SubRegionFatList= ${JSON.stringify(fatList.subRegion)};
+ export const CapitalsMap= ${JSON.stringify(maps.capitals)};
+ export const CapitalsFatList= ${JSON.stringify(fatList.capitals)};
+ export const LanguagesMap= ${JSON.stringify(maps.languages)};
+ export const LanguagesFatList= ${JSON.stringify(fatList.languages)};
+ export const TranslationsMap= ${JSON.stringify(maps.translations)};
+ export const TranslationsFatList= ${JSON.stringify(fatList.translations)};
+ export const LatLngMap= ${JSON.stringify(maps.latLng)};
+ export const LatLngFatList= ${JSON.stringify(fatList.latLng)};
+ export const LandlockedMap= ${JSON.stringify(maps.landlocked)};
+ export const LandlockedFatList= ${JSON.stringify(fatList.landlocked)};
+ export const BordersMap= ${JSON.stringify(maps.borders)};
+ export const BordersFatList= ${JSON.stringify(fatList.borders)};
+ export const AreaMap= ${JSON.stringify(maps.area)};
+ export const AreaFatList= ${JSON.stringify(fatList.area)};
+ export const DemonymsMap= ${JSON.stringify(maps.demonyms)};
+ export const DemonymsFatList= ${JSON.stringify(fatList.demonyms)};
+ export const FlagsMap= ${JSON.stringify(maps.flag)};
+ export const FlagsFatList= ${JSON.stringify(fatList.flag)};
+ export const CallingCodesMap= ${JSON.stringify(maps.callingCodes)};
+ export const CallingCodesFatList= ${JSON.stringify(fatList.callingCodes)};
+ `;
 
     function removeDups(ar) {
         return [...new Set(ar)];
     }
 
-    let listArraysAnInterface = "\n";
+    let listable = "\n\n export type Listable = 'default'";
+    let list_types = "\n\n export type List = [] ";
+    let mappable = "\n\n export type Mappable = 'default'";
 
     for (const listsKey in lists) {
+        listable += ` | '${listsKey}'`;
         lists[listsKey] = removeDups(lists[listsKey]);
         const arrayName = (snakeCase(listsKey) + "_ARRAY").toUpperCase();
         const typeName = ['cca2', 'tld', 'ccn3', 'cca3', 'cioc', 'idd'].includes(listsKey) ? listsKey.toUpperCase() : pascalCase(listsKey);
 
-        listArraysAnInterface += `\n export const ${arrayName} = ${JSON.stringify(lists[listsKey])} as const;`
+        listArraysAnInterface += `\n export const ${arrayName} = ${JSON.stringify(lists[listsKey])};`
         listArraysAnInterface += `\n export type ${typeName} = typeof ${arrayName}[number];`;
-    }
-    listArraysAnInterface +=`
- export type NamesMap =Record<CCA2,Name>;
- export type NamesFatList =[CCA2,Name][];
- export type TLDMap =  Record<CCA2,TLD>;
- export type TLDFatList = [CCA2, TLD][];
- export type CCN3Map =  Record<CCA2,CCN3>;
- export type CCN3FatList = [CCA2, CCN3][];
- export type CCA3Map =  Record<CCA2,CCA3>;
- export type CCA3FatList = [CCA2, CCA3][];
- export type CIOCMap =  Record<CCA2,CIOC>;
- export type CIOCFatList = [CCA2, CIOC][];
- export type IndependentMap =  Record<CCA2,boolean>;
- export type IndependentFatList = [CCA2, boolean][];
- export type IDDMap =  Record<CCA2,InternationalDirectDialing>;
- export type IDDFatList = [CCA2, InternationalDirectDialing][];
- export type CountryStatusMap =  Record<CCA2,CountryStatus>;
- export type CountryStatusFatList = [CCA2, CountryStatus][];
- export type CURRENCIESMap =  Record<CCA2,Record<CurrencyCode , Currency>>;
- export type CURRENCIESFatList = [CCA2, Record<CurrencyCode , Currency>][];
- export type REGIONMap =  Record<CCA2,Region>;
- export type REGIONFatList = [CCA2, Region][];
- export type SubRegionMap =  Record<CCA2,SubRegion>;
- export type SubRegionFatList = [CCA2, SubRegion][];
- export type CAPITALSMap =  Record<CCA2,Capital>;
- export type CAPITALSFatList = [CCA2, Capital][];
- export type LANGUAGESMap =  Record<CCA2,Record<Lang,LanguageName>>;
- export type LANGUAGESFatList = [CCA2, Record<Lang,LanguageName>][];
- export type TRANSLATIONSMap =  Record<CCA2, Record<Lang, { official :  string;  common : string; }>>;
- export type TRANSLATIONSFatList = [CCA2,  Record<Lang, { official :  string;  common : string; }>][];
- export type LatLngMap =  Record<CCA2,LatLong>;
- export type LatLngFatList = [CCA2, LatLong][];
- export type LandlockedMap =  Record<CCA2,boolean>;
- export type LandlockedFatList = [CCA2, boolean][];
- export type BordersMap =  Record<CCA2,CCA3[]>;
- export type BordersFatList = [CCA2, CCA3[]][];
- export type AreaMap =  Record<CCA2,number>;
- export type AreaFatList = [CCA2, number][];
- export type DemonymsMap =  Record<CCA2, Record<Lang, { f : string; m : string; }>>;
- export type DemonymsFatList = [CCA2,  Record<Lang, { f : string; m : string; }>][];
- export type CallingCodesMap =  Record<CCA2,string[]>;
- export type CallingCodesFatList = [CCA2, string[]][];
-    `;
-    for (const mapsKey in maps) {
 
+        list_types += ` | Array<${typeName}>`;
     }
+
+    listable += ";"
+    list_types += ";"
+
+    for (const mapsKey in maps) {
+        mappable += ` | '${mapsKey}'`;
+    }
+
+    mappable += ";";
+
+    rm('-rf', dataSourcePath);
 
     appendFileSync(countries_file,
         listArraysAnInterface +
         interfaceCountry +
-        "\n export const countries: Array<Country>=" + countriesString + ";"
+        listable +
+        list_types +
+        mappable +
+        "\n\n export const countries: Array<Country>=" + countriesString + ";"
     );
     printSuccess('Country Data file was created successfully.');
+
 } catch
     (e) {
     // console.error(e)
@@ -360,7 +393,64 @@ try {
     exit(1);
 }
 
+try {
+    const flagsIndex = './src/data/flags/index.ts';
+    const topoIndex = './src/data/topo-json/index.ts';
+    const geoIndex = './src/data/geo-json/index.ts';
 
-printLog("Done.");
+    printLog("Indexing flags...");
+    prepareFile(flagsIndex);
+    cp(path_to_dependency + '/data/*.svg', "./src/data/flags");
+    ls('./src/data/flags/*.svg').forEach((file) => {
+        const {base, name} = parse(file);
+        appendFileSync(
+            flagsIndex,
+            `
+import ${name} from "./${base}";
+export const ${name}_flag = ${name};`
+        );
+    });
+    printSuccess(chalk.bold("flag") + " indexed.");
+
+    printLog("Indexing geo-json...");
+    prepareFile(geoIndex);
+    cp(path_to_dependency + '/data/*.geo.json', "./src/data/geo-json");
+    ls('./src/data/geo-json/*.geo.json').forEach((file) => {
+        const {base, name: _name} = parse(file);
+        const name = _name.replace(".geo","");
+
+        appendFileSync(
+            geoIndex,
+            `
+import ${name} from "./${base}";
+export const ${name}_geo_json = ${name};`
+        );
+    });
+    printSuccess(chalk.bold("geo-json") + " indexed.");
+
+    printLog("Indexing topo.json...");
+    prepareFile(topoIndex);
+    cp(path_to_dependency + '/data/*.topo.json', "./src/data/topo-json");
+
+    ls('./src/data/topo-json/*.topo.json').forEach((file) => {
+
+        const {base, name: _name} = parse(file);
+        const name = _name.replace(".topo","");
+        appendFileSync(
+            topoIndex,
+            `
+import ${name} from "./${base}";
+export const ${name}_topo_json = ${name};`
+        );
+    });
+    printSuccess(chalk.bold("topo-json") + " indexed.");
+
+} catch (e) {
+    console.error(e)
+    printError('Could not fill index flags.');
+    exit(1);
+}
+
+console.log(chalk.bold.greenBright("\n✨ Done."));
 
 console.log(chalk.bgCyan.black.bold(' </FruitsBytes> '));

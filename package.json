@@ -1,6 +1,6 @@
 {
   "name": "@fruitsbytes/country-list-ts",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "It contains country information including 2 and 3 character ISO codes, country and capital names, currency information, telephone calling codes, and provinces ( first-tier political subdivisions).",
   "source": "src/index.ts",
   "main": "dist/main.js",
@@ -10,12 +10,24 @@
   "directories": {
     "test": "test"
   },
+  "targets": {
+    "main": {
+      "optimize": true,
+      "isLibrary" : true
+    }
+  },
   "scripts": {
-    "dev": "parcel watch",
-    "build": "parcel build",
+    "dev": "npm run init && parcel watch",
+    "build": "npm run init && parcel build",
     "lint": "eslint . --fix",
     "test": "jest --coverage",
-    "make-data": "node bin/build-data"
+    "make-data": "node bin/build-data",
+    "copy-flags": "cp -r src/data/flags/* dist/flags",
+    "copy-geo-json": "cp -r src/data/geo-json/* dist/geo-json",
+    "copy-topo-json": "cp -r src/data/topo-json/* dist/topo-json",
+    "clean-dist": "rm -rf dist && mkdir dist && mkdir dist/flags && mkdir dist/geo-json && mkdir dist/topo-json",
+    "init": "npm run make-data && npm run clean-dist && npm run copy-files",
+    "copy-files": "npm run copy-flags & npm run copy-geo-json & npm run copy-topo-json"
   },
   "bin": {
     "make-data": "bin/build-data.js"
@@ -28,11 +40,17 @@
     "iso3",
     "phone",
     "capital",
-    "continent",
+    "subregion",
+    "languages",
     "region",
+    "currencies",
     "geographic",
-    "ESM",
-    "Typescript"
+    "flag",
+    "geo-jon",
+    "top-json",
+    "Typescript",
+    "list",
+    "mapped"
   ],
   "author": "FruitsBytes <librarian@fruitsbytes.com> (https://github.com/Fruitsbytes)",
   "license": "MIT",
@@ -58,7 +76,7 @@
     "shelljs": "^0.8.5",
     "ts-jest": "^29.0.3",
     "typescript": "~4.7",
-    "world-countries": "^4.0.0"
+    "world-countries": "github:mledoze/countries"
   },
   "jest": {
     "preset": "ts-jest"
@@ -69,5 +87,9 @@
     "lodash.snakecase": "^4.1.1",
     "lodash.startcase": "^4.4.0",
     "lodash.uppercase": "^4.3.0"
+  },
+  "browserslist": ["> 0.5%, last 2 versions, not dead"],
+  "publishConfig": {
+    "access": "public"
   }
 }

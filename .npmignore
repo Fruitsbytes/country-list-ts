@@ -1,4 +1,4 @@
-**/.eslintrc.js
+.eslintrc.cjs
 **/.eslintignore
 **/.parcel-cache
 **/.github/README.md
