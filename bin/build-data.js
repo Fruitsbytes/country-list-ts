@@ -416,7 +416,9 @@ export const ${name}_flag = ${name};`
     prepareFile(geoIndex);
     cp(path_to_dependency + '/data/*.geo.json', "./src/data/geo-json");
     ls('./src/data/geo-json/*.geo.json').forEach((file) => {
-        const {base, name} = parse(file);
+        const {base, name: _name} = parse(file);
+        const name = _name.replace(".geo","");
+
         appendFileSync(
             geoIndex,
             `
@@ -426,11 +428,14 @@ export const ${name}_geo_json = ${name};`
     });
     printSuccess(chalk.bold("geo-json") + " indexed.");
 
-    printLog("Indexing flags...");
+    printLog("Indexing topo.json...");
     prepareFile(topoIndex);
     cp(path_to_dependency + '/data/*.topo.json', "./src/data/topo-json");
+
     ls('./src/data/topo-json/*.topo.json').forEach((file) => {
-        const {base, name} = parse(file);
+
+        const {base, name: _name} = parse(file);
+        const name = _name.replace(".topo","");
         appendFileSync(
             topoIndex,
             `
@@ -438,7 +443,6 @@ import ${name} from "./${base}";
 export const ${name}_topo_json = ${name};`
         );
     });
-    prepareFile(topoIndex);
     printSuccess(chalk.bold("topo-json") + " indexed.");
 
 } catch (e) {

@@ -1,7 +1,8 @@
 node_modules
 .parcel-cache
 dist
-.eslintrc.js
+.eslintrc.cjs
 package-lock.json
 coverage
 /.idea
+.idea/sonarlint/issuestore/index.pb

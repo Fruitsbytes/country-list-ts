@@ -19,7 +19,7 @@ country is considered a sovereign state.
     - flags
     - geo-json
     - topo-json
-- Custom flag WebComponent
+- 🚧 Flag WebComponent
 - List
     - of names, capitals, languages, currencies ...
     - mapped lists by ISO 3166-1 alpha-2
@@ -48,7 +48,7 @@ Get list of country record member.
 ```typescript
 import {ls} from "country-list-ts";
 
-const c = ls('capital'); // ordered by country name
+const c = await ls('capital'); // ordered by country name
 
 // Output:
 // ["Oranjestad","Kabul","Luanda","The Valley","Mariehamn","Tirana", ... ]
@@ -59,7 +59,7 @@ It's the same as :
 ```typescript
 import {capitals} from "country-list-ts";
 
-const c = capitals().sort(); // reorder alphabetically
+const c = (await capitals()).sort(); // reorder alphabetically
 // Output: 
 // ['Abu Dhabi', 'Abuja', 'Accra', 'Adamstown', 'Addis Ababa', ... ]
 ```
@@ -88,7 +88,7 @@ const c = capitals().sort(); // reorder alphabetically
 ```typescript
 import {lsF} from "country-list-ts";
 
-const currencies = lsF("currencies");
+const currencies = await lsF("currencies");
 
 // Output:
 // [
@@ -103,21 +103,21 @@ Here is an example with Angular ngFor:
 @Component({
   selector: 'app-select-country',
   template: '<select> ' +
-          '<option *ngFor="let country of countryList" [ngValue]="country.cca2">' +
+          '<option *ngFor="let country of $countryList | async" [ngValue]="country.cca2">' +
           '{{country.name.official}}' +
           '</option> ' +
           '</select>',
   styleUrls: ['./select-country.scss']
 })
 export class SelectCountryComponent {
-  public countryList = lsF(); // default list name
+  public $countryList = lsF(); // default list name
 }
 ````
 
 #### Mapped list
 ```typescript
 import {lsM} from "country-list-ts";
-const gps = lsM("latLng");
+const gps = await lsM("latLng");
 // Output:
 // {"AW":[12.5,-69.96666666],"AF":[33,65],"AO":[-12.5,18.5],"AI":[18.25,-63.16666666],....]
 ```
@@ -136,7 +136,7 @@ import {all} from "country-list-ts";
 /**
  * @var {Country[]}
  */
-const countries = all();
+const countries = await all();
 ```
 
 An example of a Country object :
@@ -269,8 +269,8 @@ import {find} from "country-list-ts";
 /**
  * @var {Country}
  */
-const haiti = find("name.common", "Haiti") ;
-const {capital} = find("name.common", "Canada"); // ["Ottawa"]
+const haiti = await find("name.common", "Haiti") ;
+const {capital} = await find("name.common", "Canada"); // ["Ottawa"]
 ```
 The `find` frunction returns the first Country that satisfies the search value. To get a list use `get`
 
@@ -280,7 +280,7 @@ import {get} from "country-list-ts";
 /**
  * @var {Country[]}
  */
-const tropicals = get("region", "Caribbean") ;
+const tropicals = await get("region", "Caribbean") ;
 ```
 
 Both `find` and `get` are memoized;
@@ -289,9 +289,33 @@ Both `find` and `get` are memoized;
 
 #### Flags
 
+```typescript jsx
+// React
+import {bra_flag} from "@fruitsbytes/country-list-ts/dist/flags";
+
+export function BrasilFlag() {
+  
+    return (
+        <img src={bra_flag}/>
+    )
+}
+
+```
+example: [Brasil](./src/data/geo-json/usa.geo.json)
+
 #### Geo-JSON
+```typescript
+import {usa_geo_json} from "@fruitsbytes/country-list-ts/dist/geo-json";
+```
+example: [USA](./src/data/geo-json/usa.geo.json)
+
 
 #### Topo-JSON
+```typescript
+import {ht} from "@fruitsbytes/country-list-ts/dist/topo-json";
+```
+
+example: [USA](./src/data/topo-json/usa.topo.json)
 
 ## Extend
 For specific use case you can combine it with othe libraries:
@@ -308,7 +332,7 @@ You can use FuseJS for country list suggestion/TypeHead input
 import {all} from "country-list-ts";
 import Fuse from 'fuse.js';
 
-const countries = all();
+const countries = await all();
 
 const fuse = new Fuse(countries, {
   keys: ['cca2', 'cca3', 'name.common']
